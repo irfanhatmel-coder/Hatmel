@@ -1,24 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<title> Surat Cinta Buat Biruu</title>
-<img src="gambar.jpg">
+<meta charset="UTF-8">
+<title>Hacker Terminal</title>
+
+<style>
+body{
+    margin:0;
+    background:black;
+    color:#00ff00;
+    font-family:monospace;
+    overflow:hidden;
+}
+
+canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:-1;
+}
+
+.terminal{
+    padding:20px;
+}
+
+#output{
+    margin-bottom:10px;
+}
+
+input{
+    background:black;
+    border:none;
+    color:#00ff00;
+    font-family:monospace;
+    font-size:16px;
+    outline:none;
+    width:90%;
+}
+</style>
 </head>
 
 <body>
 
-<h1>Halo Dunia</h1>
-<p>Saya sedang belajar HTML</p>
+<canvas id="matrix"></canvas>
 
-<h1>Judul</h1>
-<p>Paragraf</p>
-<a href="https://google.com">Link</a>
-<img src="gambar.jpg1">
-<ul>
-  <li>Item 1</li>
-  <li>Item 2</li>
-</ul>
+<div class="terminal">
+<div id="output">
+> System booting...<br>
+> Access granted<br>
+> Type command:
+</div>
 
-<body>
-<html>
-<img src="" 
+<span>> </span>
+<input id="command" autofocus>
+</div>
+
+<script>
+
+// MATRIX EFFECT
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+
+const letters = "01アカサタナハマヤャラワ";
+const fontSize = 16;
+const columns = canvas.width / fontSize;
+
+const drops = [];
+for(let x = 0; x < columns; x++){
+    drops[x] = 1;
+}
+
+function draw(){
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = "#0f0";
+    ctx.font = fontSize + "px monospace";
+
+    for(let i=0;i<drops.length;i++){
+        const text = letters[Math.floor(Math.random()*letters.length)];
+        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+
+        if(drops[i]*fontSize > canvas.height && Math.random()>0.975){
+            drops[i]=0;
+        }
+
+        drops[i]++;
+    }
+}
+
+setInterval(draw,33);
+
+// TERMINAL COMMAND
+const input = document.getElementById("command");
+const output = document.getElementById("output");
+
+input.addEventListener("keydown",function(e){
+
+if(e.key === "Enter"){
+
+const cmd = input.value;
+output.innerHTML += "<br>> " + cmd;
+
+if(cmd === "help"){
+output.innerHTML += "<br>Commands: help, hack, clear, about";
+}
+
+else if(cmd === "hack"){
+fakeHack();
+}
+
+else if(cmd === "about"){
+output.innerHTML += "<br>JavaScript Hacker Terminal v1.0";
+}
+
+else if(cmd === "clear"){
+output.innerHTML="";
+}
+
+else{
+output.innerHTML += "<br>Command not found";
+}
+
+input.value="";
+window.scrollTo(0,document.body.scrollHeight);
+
+}
+
+});
+
+// FAKE HACK ANIMATION
+function fakeHack(){
+
+let progress = 0;
+
+const interval = setInterval(()=>{
+
+progress+=10;
+output.innerHTML += "<br>Hacking system... "+progress+"%";
+
+if(progress>=100){
+clearInterval(interval);
+output.innerHTML += "<br>Access Granted 🔓";
+}
+
+},300);
+
+}
+
+</script>
+
+</body>
+</html>
