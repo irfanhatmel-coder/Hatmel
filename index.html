@@ -1,155 +1,139 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Hacker Terminal</title>
+<title>Advanced Security System</title>
 
 <style>
 body{
-    margin:0;
-    background:black;
-    color:#00ff00;
-    font-family:monospace;
-    overflow:hidden;
-}
-
-canvas{
-    position:fixed;
-    top:0;
-    left:0;
-    z-index:-1;
-}
-
-.terminal{
-    padding:20px;
-}
-
-#output{
-    margin-bottom:10px;
+background:black;
+color:#00ff00;
+font-family:monospace;
+text-align:center;
+margin-top:100px;
 }
 
 input{
-    background:black;
-    border:none;
-    color:#00ff00;
-    font-family:monospace;
-    font-size:16px;
-    outline:none;
-    width:90%;
+padding:10px;
+background:black;
+border:1px solid #00ff00;
+color:#00ff00;
+}
+
+button{
+padding:10px 20px;
+background:#00ff00;
+border:none;
+cursor:pointer;
+}
+
+#terminal{
+margin-top:20px;
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="matrix"></canvas>
+<h2>🔐 Secure Access Terminal</h2>
 
-<div class="terminal">
-<div id="output">
-> System booting...<br>
-> Access granted<br>
-> Type command:
-</div>
+<input type="password" id="password" placeholder="Enter password">
+<br><br>
+<button onclick="login()">LOGIN</button>
 
-<span>> </span>
-<input id="command" autofocus>
-</div>
+<div id="terminal"></div>
 
 <script>
 
-// MATRIX EFFECT
-const canvas = document.getElementById("matrix");
-const ctx = canvas.getContext("2d");
-
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
-
-const letters = "01アカサタナハマヤャラワ";
-const fontSize = 16;
-const columns = canvas.width / fontSize;
-
-const drops = [];
-for(let x = 0; x < columns; x++){
-    drops[x] = 1;
+// PASSWORD HASH (SHA-256)
+async function hash(text){
+const msgBuffer = new TextEncoder().encode(text);
+const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+const hashArray = Array.from(new Uint8Array(hashBuffer));
+return hashArray.map(b => b.toString(16).padStart(2,"0")).join("");
 }
 
-function draw(){
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+// PASSWORD HASHED
+const correctHash =
+"240be518fabd2724ddb6f04eeb9d5d3f7c4c3f3d6d55f23a6d4e04d4e0c1a4f5";
 
-    ctx.fillStyle = "#0f0";
-    ctx.font = fontSize + "px monospace";
+let attempts = 0;
+let locked = false;
+let sessionToken = null;
 
-    for(let i=0;i<drops.length;i++){
-        const text = letters[Math.floor(Math.random()*letters.length)];
-        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+// LOGIN SYSTEM
+async function login(){
 
-        if(drops[i]*fontSize > canvas.height && Math.random()>0.975){
-            drops[i]=0;
-        }
-
-        drops[i]++;
-    }
+if(locked){
+log("🚫 SYSTEM LOCKED");
+return;
 }
 
-setInterval(draw,33);
+const pass = document.getElementById("password").value;
+const passHash = await hash(pass);
 
-// TERMINAL COMMAND
-const input = document.getElementById("command");
-const output = document.getElementById("output");
+if(passHash === correctHash){
 
-input.addEventListener("keydown",function(e){
+sessionToken = generateToken();
+log("✅ ACCESS GRANTED");
+log("Session Token: " + sessionToken);
 
-if(e.key === "Enter"){
+startSessionTimeout();
 
-const cmd = input.value;
-output.innerHTML += "<br>> " + cmd;
+}else{
 
-if(cmd === "help"){
-output.innerHTML += "<br>Commands: help, hack, clear, about";
+attempts++;
+log("❌ WRONG PASSWORD");
+
+if(attempts >= 3){
+locked = true;
+log("🚫 TOO MANY ATTEMPTS - SYSTEM LOCKED");
 }
-
-else if(cmd === "hack"){
-fakeHack();
-}
-
-else if(cmd === "about"){
-output.innerHTML += "<br>JavaScript Hacker Terminal v1.0";
-}
-
-else if(cmd === "clear"){
-output.innerHTML="";
-}
-
-else{
-output.innerHTML += "<br>Command not found";
-}
-
-input.value="";
-window.scrollTo(0,document.body.scrollHeight);
 
 }
 
-});
-
-// FAKE HACK ANIMATION
-function fakeHack(){
-
-let progress = 0;
-
-const interval = setInterval(()=>{
-
-progress+=10;
-output.innerHTML += "<br>Hacking system... "+progress+"%";
-
-if(progress>=100){
-clearInterval(interval);
-output.innerHTML += "<br>Access Granted 🔓";
 }
 
-},300);
+// TERMINAL OUTPUT
+function log(text){
+document.getElementById("terminal").innerHTML += "<br>> "+text;
+}
+
+// TOKEN GENERATOR
+function generateToken(){
+return Math.random().toString(36).substring(2) +
+Math.random().toString(36).substring(2);
+}
+
+// SESSION TIMEOUT
+function startSessionTimeout(){
+
+setTimeout(()=>{
+
+sessionToken = null;
+log("⏳ SESSION EXPIRED");
+
+},30000);
 
 }
+
+// DISABLE RIGHT CLICK
+document.addEventListener("contextmenu", e=>e.preventDefault());
+
+// BLOCK F12
+document.onkeydown=function(e){
+if(e.keyCode==123){
+return false;
+}
+}
+
+// DEVTOOLS DETECTOR
+setInterval(function(){
+
+if(window.outerWidth - window.innerWidth > 160){
+log("⚠ Developer tools detected!");
+}
+
+},1000);
 
 </script>
 
